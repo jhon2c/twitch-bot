@@ -54,7 +54,7 @@ client.on('message', (channel, tags, message, self) => {
       // INSERT INTO comandos (`comando`, `resposta`) VALUES ('"+params[0]+"', '+params.slice(1).join(' ')+"'");
       // SELECT EXISTS(SELECT * from ExistsRowDemo WHERE ExistId=104);
       var cnt ="";
-      con.query("SELECT EXISTS(SELECT 1 from comandos WHERE comando = '"+params[0]+"');" , (error, res) => {
+      con.query("SELECT 1 from comandos WHERE comando = '"+params[0]+"'", (error, res) => {
         if (error) {
           console.log(error);
           client.say(channel, "Erro no banco de dados");
