@@ -11,10 +11,10 @@ const con = mysql.createConnection({
 
 con.connect((err) => {
   if (err) {
-      console.log('Erro connecting to database...', err)
+      console.log('Erro conectando ao banco de dados', err)
       return
   }
-  console.log('Connection established!')
+  console.log('Conectado ao banco de dados!')
 })
 
 const client = new tmi.Client({
@@ -33,7 +33,7 @@ const client = new tmi.Client({
 client.connect();
 
 client.on('message', (channel, tags, message, self) => {
-	// Ignore echoed messages.
+	// Ignore echoed and non command messages.
 	if(self || message[0] !== '!') {
     return;
   }
@@ -42,49 +42,91 @@ client.on('message', (channel, tags, message, self) => {
   const isBroadcaster = badges.broadcaster;
   const isMod = badges.moderator;
   const isModUp = isBroadcaster || isMod;
-
+  
+  // Split commands from querys 
   let params = message.slice(1).split(' ');
-  console.log(params[0]);
   let command = params.shift().toLowerCase();
-  console.log(command);
-
-
+  
+  // Conditional checks
   if(command === 'addcom') {
     if (isModUp){
-      // INSERT INTO comandos (`comando`, `resposta`) VALUES ('"+params[0]+"', '+params.slice(1).join(' ')+"'");
-      // SELECT EXISTS(SELECT * from ExistsRowDemo WHERE ExistId=104);
-      var cnt ="";
       con.query("SELECT 1 from comandos WHERE comando = '"+params[0]+"'", (error, res) => {
         if (error) {
           console.log(error);
-          client.say(channel, "Erro no banco de dados");
+          client.say(channel, "Erro no banco de dados! NotLikeThis ");
         }
-        console.log(res.length);
+        if (res.length  > 0) {
+          console.log('Falha ao adicionar um comando');
+          client.say(channel, "Esse comando já existe! NotLikeThis ");
+        } else {
+          console.log('Inserido novo comando');
+          con.query( "INSERT INTO comandos (`comando`, `resposta`) VALUES ('"+params[0]+"', '"+params.slice(1).join(' ')+"')" , (error, res) => {
+            if (error) {
+              console.log(error);
+              client.say(channel, "Erro no banco de dados! NotLikeThis ");
+            }
+             client.say(channel, "Comando adicionado! Façam um bom uso. Keepo");
+           })
+        }
       })
-
-      // con.query( "INSERT INTO comandos (`comando`, `resposta`) VALUES ('"+params[0]+"', '"+params.slice(1).join(' ')+"')" , (err, res) => {
-      //    if (err) throw err
-       //   client.say(channel, "Comando adicionado!");
-      //})
     } else {
-      
+      client.say(channel, "Somente mods podem adicionar comandos. CoolStoryBob ");
     }
   } else if (command === 'editcom') {
     if (isModUp){
-      // UPDATE `comandos` SET `resposta` = 'Visite: http://zmlabs.com.br' WHERE `comandos`.`id` = 1;
+      con.query("SELECT 1 from comandos WHERE comando = '"+params[0]+"'", (error, res) => {
+        if (error) {
+          console.log(error);
+          client.say(channel, "Erro no banco de dados! NotLikeThis ");
+        }
+        if (res.length  < 0) {
+          console.log('Falha ao adicionar um comando');
+          client.say(channel, "Esse comando não existe! NotLikeThis ");
+        } else {
+          console.log('Editando um comando');
+          con.query( "UPDATE comandos SET resposta = '"+params.slice(1).join(' ')+"' WHERE comando = '"+params[0]+"';", (error, res) => {
+            if (error) {
+              console.log(error);
+              client.say(channel, "Erro no banco de dados! NotLikeThis ");
+            }
+             client.say(channel, "Comando modificado! KomodoHype");
+           })
+        }
+      })
     } else {
-      
+      client.say(channel, "Comando editado, brinks! Tu não pode fazer isso. Keepo"); 
     }
   } else if (command === 'delcom') {
     if (isModUp){
-       // DELETE FROM `comandos` (`id`, `comando`, `resposta`) VALUES (NULL, '!agenda', 'Todo dia');
+      con.query("SELECT 1 from comandos WHERE comando = '"+params[0]+"'", (error, res) => {
+        if (error) {
+          console.log(error);
+          client.say(channel, "Erro no banco de dados! NotLikeThis");
+        }
+        if (res.length  < 0) {
+          console.log('Falha ao adicionar um comando');
+          client.say(channel, "Esse comando não existe! NotLikeThis");
+        } else {
+          console.log('Excluindo um comando');
+          con.query( "DELETE FROM comandos WHERE comando = '"+params[0]+"'", (error, res) => {
+            if (error) {
+              console.log(error);
+              client.say(channel, "Erro no banco de dados! NotLikeThis");
+            }
+             client.say(channel, "Comando excluído! BibleThump ");
+           })
+        }
+      })
     } else {
-      
+      client.say(channel, "Lhe falta uma espada para poder fazer isso! 4Head ");
     }
   } else {
-    con.query("SELECT resposta FROM comandos WHERE comando = '!"+command+"'", (err, rows) => {
-      if (err) throw err
-        rows.forEach(row => {
+    con.query("SELECT resposta FROM comandos WHERE comando = '!"+command+"'", (error, res) => {
+      if (error) {
+        console.log(error);
+        client.say(channel, "Erro no banco de dados! NotLikeThis");
+      }
+        res.forEach(row => {
         client.say(channel, row.resposta);
       });
     })
