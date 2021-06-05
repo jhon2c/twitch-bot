@@ -2,20 +2,12 @@ require('dotenv').config();
 const mysql = require('mysql');
 const tmi = require('tmi.js');
 
-const con = mysql.createConnection({
+var con = mysql.createPool({
   host: process.env.DB_HOST, 
   user: process.env.DB_USER, 
   password: process.env.DB_PASS, 
   database: process.env.DB_NAME
 });
-
-con.connect((err) => {
-  if (err) {
-      console.log('Erro conectando ao banco de dados', err)
-      return
-  }
-  console.log('Conectado ao banco de dados!')
-})
 
 const client = new tmi.Client({
   connection: {
@@ -37,6 +29,7 @@ client.on('message', (channel, tags, message, self) => {
 	if(self || message[0] !== '!') {
     return;
   }
+  
   //Check for roles
   const badges = tags.badges || {};
   const isBroadcaster = badges.broadcaster;
@@ -46,7 +39,7 @@ client.on('message', (channel, tags, message, self) => {
   // Split commands from querys 
   let params = message.slice(1).split(' ');
   let command = params.shift().toLowerCase();
-  
+ 
   // Conditional checks
   if(command === 'addcom') { 
     if (isModUp){
@@ -54,7 +47,6 @@ client.on('message', (channel, tags, message, self) => {
         if (error) {
           console.log(error);
           client.say(channel, "Erro no banco de dados! NotLikeThis ");
-          //client.say(channel, "Database error! NotLikeThis "); // Uncomment this row for ENG or change the row above to your language
         }
         if (res.length  > 0) {
           console.log('Falha ao adicionar um comando');
@@ -65,7 +57,6 @@ client.on('message', (channel, tags, message, self) => {
             if (error) {
               console.log(error);
               client.say(channel, "Erro no banco de dados! NotLikeThis ");
-              //client.say(channel, "Database error! NotLikeThis "); // Uncomment this row for ENG or change the row above to your language
             }
              client.say(channel, "Comando adicionado! Façam um bom uso. Keepo");
            })
@@ -133,6 +124,6 @@ client.on('message', (channel, tags, message, self) => {
             client.say(channel, row.response);
           }
       });
-    })
-  }  
+    }) 
+  }
 });
