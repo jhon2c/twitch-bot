@@ -48,22 +48,24 @@ client.on('message', (channel, tags, message, self) => {
   let command = params.shift().toLowerCase();
   
   // Conditional checks
-  if(command === 'addcom') {
+  if(command === 'addcom') { 
     if (isModUp){
-      con.query("SELECT 1 from comandos WHERE comando = '"+params[0]+"'", (error, res) => {
+      con.query("SELECT 1 from commands WHERE command = '"+params[0]+"'", (error, res) => {
         if (error) {
           console.log(error);
           client.say(channel, "Erro no banco de dados! NotLikeThis ");
+          //client.say(channel, "Database error! NotLikeThis "); // Uncomment this row for ENG or change the row above to your language
         }
         if (res.length  > 0) {
           console.log('Falha ao adicionar um comando');
           client.say(channel, "Esse comando já existe! NotLikeThis ");
         } else {
           console.log('Inserido novo comando');
-          con.query( "INSERT INTO comandos (`comando`, `resposta`) VALUES ('"+params[0]+"', '"+params.slice(1).join(' ')+"')" , (error, res) => {
+          con.query( "INSERT INTO commands (`command`, `response`) VALUES ('"+params[0]+"', '"+params.slice(1).join(' ')+"')" , (error, res) => {
             if (error) {
               console.log(error);
               client.say(channel, "Erro no banco de dados! NotLikeThis ");
+              //client.say(channel, "Database error! NotLikeThis "); // Uncomment this row for ENG or change the row above to your language
             }
              client.say(channel, "Comando adicionado! Façam um bom uso. Keepo");
            })
@@ -74,7 +76,7 @@ client.on('message', (channel, tags, message, self) => {
     }
   } else if (command === 'editcom') {
     if (isModUp){
-      con.query("SELECT 1 from comandos WHERE comando = '"+params[0]+"'", (error, res) => {
+      con.query("SELECT 1 from commands WHERE command = '"+params[0]+"'", (error, res) => {
         if (error) {
           console.log(error);
           client.say(channel, "Erro no banco de dados! NotLikeThis ");
@@ -84,7 +86,7 @@ client.on('message', (channel, tags, message, self) => {
           client.say(channel, "Esse comando não existe! NotLikeThis ");
         } else {
           console.log('Editando um comando');
-          con.query( "UPDATE comandos SET resposta = '"+params.slice(1).join(' ')+"' WHERE comando = '"+params[0]+"';", (error, res) => {
+          con.query("UPDATE commands SET response = '"+params.slice(1).join(' ')+"' WHERE command = '"+params[0]+"';", (error, res) => {
             if (error) {
               console.log(error);
               client.say(channel, "Erro no banco de dados! NotLikeThis ");
@@ -98,7 +100,7 @@ client.on('message', (channel, tags, message, self) => {
     }
   } else if (command === 'delcom') {
     if (isModUp){
-      con.query("SELECT 1 from comandos WHERE comando = '"+params[0]+"'", (error, res) => {
+      con.query("SELECT 1 from commands WHERE command = '"+params[0]+"'", (error, res) => {
         if (error) {
           console.log(error);
           client.say(channel, "Erro no banco de dados! NotLikeThis");
@@ -108,7 +110,7 @@ client.on('message', (channel, tags, message, self) => {
           client.say(channel, "Esse comando não existe! NotLikeThis");
         } else {
           console.log('Excluindo um comando');
-          con.query( "DELETE FROM comandos WHERE comando = '"+params[0]+"'", (error, res) => {
+          con.query( "DELETE FROM commands WHERE command = '"+params[0]+"'", (error, res) => {
             if (error) {
               console.log(error);
               client.say(channel, "Erro no banco de dados! NotLikeThis");
@@ -121,13 +123,15 @@ client.on('message', (channel, tags, message, self) => {
       client.say(channel, "Lhe falta uma espada para poder fazer isso! 4Head ");
     }
   } else {
-    con.query("SELECT resposta FROM comandos WHERE comando = '!"+command+"'", (error, res) => {
+    con.query("SELECT response,enabled FROM commands WHERE command = '!"+command+"'", (error, res) => {
       if (error) {
         console.log(error);
         client.say(channel, "Erro no banco de dados! NotLikeThis");
       }
         res.forEach(row => {
-        client.say(channel, row.resposta);
+          if(row.enabled){
+            client.say(channel, row.response);
+          }
       });
     })
   }  
